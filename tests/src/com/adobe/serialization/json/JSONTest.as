@@ -535,6 +535,25 @@ package com.adobe.serialization.json
 			assertEquals( 4, count );
 		}
 		
+		public function testEncodeClassInstanceWithValueClass():void
+		{
+			var customObject:ComplexClass = new ComplexClass();
+			var serialized:String;
+			var result:Object;
+			var count:int =0;
+			customObject.s = "string";
+			customObject.v = new ValueClass();
+			serialized = JSON.stringify(customObject);
+			assertTrue( "Has length", serialized.length > 0 );
+			result = JSON.parse(serialized);
+			assertEquals(customObject.s, result.s);
+			assertEquals(customObject.v.toJSON(), result.v);
+			for (serialized in result)
+			{
+				count++;
+			}
+			assertEquals(2, count);
+		}
 	}
 		
 }

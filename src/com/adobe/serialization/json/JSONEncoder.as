@@ -51,7 +51,7 @@ package com.adobe.serialization.json
 		 */
 		public function JSONEncoder( value:* )
 		{
-			jsonString = convertToString( value );
+			jsonString = convertToString( value, "" );
 		}
 		
 		/**
@@ -74,7 +74,7 @@ package com.adobe.serialization.json
 		 * @param value The value to convert.  Could be any
 		 *		type (object, number, array, etc)
 		 */
-		private function convertToString( value:* ):String
+		private function convertToString( value:*, key:String ):String
 		{
 			// determine what value is and convert it based on it's type
 			if ( value is String )
@@ -95,12 +95,12 @@ package com.adobe.serialization.json
 			else if ( value is Array )
 			{
 				// call the helper method to convert an array
-				return arrayToString( value as Array );
+				return arrayToString( value as Array, key );
 			}
 			else if ( value is Object && value != null )
 			{
 				// call the helper method to convert an object
-				return objectToString( value );
+				return objectToString( value, key );
 			}
 
 			return "null";
@@ -196,7 +196,7 @@ package com.adobe.serialization.json
 		 * @param a The array to convert
 		 * @return The JSON string representation of <code>a</code>
 		 */
-		private function arrayToString( a:Array ):String
+		private function arrayToString( a:Array, key:String ):String
 		{
 			// create a string to store the array's jsonstring value
 			var s:String = "";
@@ -215,7 +215,7 @@ package com.adobe.serialization.json
 				}
 				
 				// convert the value to a string
-				s += convertToString( a[ i ] );
+				s += convertToString( a[ i ], key );
 			}
 			
 			// KNOWN ISSUE:  In ActionScript, Arrays can also be associative
@@ -244,14 +244,26 @@ package com.adobe.serialization.json
 		 * @param o The object to convert
 		 * @return The JSON string representation of <code>o</code>
 		 */
-		private function objectToString( o:Object ):String
+		private function objectToString( o:Object, key:String ):String
 		{
 			// create a string to store the object's jsonstring value
 			var s:String = "";
 			
 			// determine if o is a class instance or a plain object
 			var classInfo:XML = describeType( o );
-			if ( classInfo.@name.toString() == "Object" )
+            var probe:* = null;
+
+            // ISSUE: is it desirable to ignore inaccessible toJSON functions?  Or do we
+            // want the exception to be thrown?  This comes into play with getters, which
+            // are not in ECMAScript.
+
+            try { probe = o.public::toJSON; } catch (e:*) { }
+
+            if (probe is Function)
+			{
+                    return convertToString(probe.AS3::call(o, key), key);
+			}
+			else if ( classInfo.@name.toString() == "Object" )
 			{
 				// the value of o[key] in the loop below - store this 
 				// as a variable so we don't have to keep looking up o[key]
@@ -280,7 +292,7 @@ package com.adobe.serialization.json
 						s += ","
 					}
 					
-					s += escapeString( key ) + ":" + convertToString( value );
+					s += escapeString( key ) + ":" + convertToString( value, key );
 				}
 			}
 			else // o is a class instance
@@ -311,7 +323,7 @@ package com.adobe.serialization.json
 					}
 					
 					s += escapeString( v.@name.toString() ) + ":"
-						+ convertToString( o[ v.@name ] );
+						+ convertToString( o[ v.@name ], v.@name );
 				}
 			}
 			

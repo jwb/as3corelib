@@ -56,9 +56,24 @@ package com.adobe.serialization.json
 		 * @playerversion Flash 9.0
 		 * @tiptext
 		 */
+		[Deprecated(replacement="JSON.stringify")]
 		public static function encode( o:Object ):String
 		{
 			return new JSONEncoder( o ).getString();
+		}
+		
+		/**
+		 * Render the object as a JSON string
+		 * This method is syntactically compatible with the Flash 11 native JSON support.
+		 * 
+		 * @param o The object to create a JSON string for
+		 * @return the JSON string represnetation of o
+		 * @langversion ActionSript 3.0
+		 * @playerversion Flash 9.0
+		 * @see #encode
+		 */
+		public static function stringify( o:Object ) : String {
+			return encode( o );
 		}
 		
 		/**
@@ -76,11 +91,25 @@ package com.adobe.serialization.json
 		 * @playerversion Flash 9.0
 		 * @tiptext
 		 */
+		[Deprecated(replacement="JOSN.parse")]
 		public static function decode( s:String, strict:Boolean = true ):*
 		{
 			return new JSONDecoder( s, strict ).getValue();
 		}
-	
+		
+		/**
+		 * Create an object from a JSON string
+		 * This method is syntactically compatible with Flash 11 native JSON support
+		 * 
+		 * @param s The JSON string respresentation of the object content
+		 * @return a dynamic object with the contents specified by s
+		 * @throw JSONParseError
+		 * @langversion ActionScript 3.0
+		 * @playerversion Flash 9.0
+		 */
+		public static function parse( s:String ):*
+		{
+			return decode( s );
+		}
 	}
-
 }
